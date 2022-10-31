@@ -1,0 +1,58 @@
+const express = require('express');
+const router = express.Router();
+
+//invocar os dados a conexao
+const conexao = require('./database/db')
+
+
+router.get('/', (req, res) => {
+    // res.render é usada para renderizar uma visualização e envia a string HTML renderizada para o paciente. 
+    // res.render('index', {var1: 'Estou com essa variavel'}) // para fazer referencia la de ejs
+    conexao.query('SELECT * FROM users',(error, results)=>{
+        if(error){
+            throw error;
+        } else {                       
+            res.render('index', {results:results.rows});            
+        }   
+    })
+})
+
+router.get('/create', (req,res)=>{
+    res.render('create');
+})
+
+router.get('/edit/:id', (req,res)=>{    
+    const id = req.params.id;
+    conexao.query('SELECT * FROM users WHERE id= $1',[id] , (error, results) => {
+        if (error) {
+            throw error;
+        }else{            
+            res.render('edit', {paciente:results.rows[0]});            
+        }        
+    });
+});
+
+router.get('/delete/:id', (req, res) => {
+    const id = req.params.id;
+    conexao.query('DELETE FROM users WHERE id = $1',[id], (error, results)=>{
+        if(error){
+            console.log(error);
+        }else{           
+            res.redirect('/');         
+        }
+    })
+});
+ router.get('/contato', (req,res)=>{
+    res.render('contato');
+})
+
+const crud = require('./controllers/crud');
+
+
+router.post('/save', crud.save);
+router.post('/update', crud.update);
+
+//export aponta para objeto que foi criado, 
+//podendo ser usado para retornar funções e objetos bastando somente
+// adicioná-los ao export.
+module.exports = router;
